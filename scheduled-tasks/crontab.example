@@ -1,0 +1,18 @@
+# Second Brain scheduled tasks
+# All times in local timezone. Adjust hours to your timezone.
+# Use Claude Code's /schedule command to create each task as a remote agent.
+
+# Nightly journal: export meetings, enrich transcripts, write daily log
+# 0 20 * * *   Nightly Journal
+
+# Meeting debriefs: research and prep tomorrow's calendar
+# 30 20 * * *  Meeting Debriefs
+
+# Weekly rollup: synthesize the week (Sunday only)
+# 0 21 * * 0   Weekly Rollup
+
+# Daily kickoff: morning accountability DM via Slack
+# 0 0 * * *    Daily Kickoff
+
+# Manual execution (from work-automation repo):
+# claude -p < ~/github-projects/work-automation/scripts/tasks/nightly-journal.prompt.md

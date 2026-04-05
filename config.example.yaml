@@ -1,0 +1,36 @@
+# Second Brain Configuration
+# Copy this file to your work-automation repo as config.yaml and fill in your values.
+
+vault:
+  path: ~/obsidian-vaults/Work/        # Absolute path to your Obsidian vault
+
+user:
+  name: Your Name
+  email: you@company.com
+  personal_email: you@gmail.com
+  role: Your Role
+  company: Your Company
+  team: Your Team
+
+slack:
+  user_id: UXXXXXXXXXX                 # Your Slack member ID
+  dm_channel: DXXXXXXXXXX              # Your self-DM channel ID
+
+jira:
+  account_id: ""                       # Your Jira account ID
+  cloud_id: ""                         # Your Jira Cloud instance ID
+  project_key: ""                      # e.g., DATA
+  project_id: ""                       # Numeric project ID
+
+calendar:
+  timezone: America/Denver             # Your IANA timezone
+
+github:
+  account: your-github-username
+  ssh_alias: github-work               # SSH alias from ~/.ssh/config
+
+schedule:
+  nightly_journal: "0 20 * * *"        # 8pm daily
+  meeting_debriefs: "30 20 * * *"      # 8:30pm daily
+  weekly_rollup: "0 21 * * 0"          # 9pm Sunday
+  daily_kickoff: "0 0 * * *"           # midnight daily
