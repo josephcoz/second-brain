@@ -1,61 +1,55 @@
-# Weekly Rollup
+# Weekly Rollup (rollup sub-spec of the `dream` skill)
+
+> **This is now Step 4 of the `dream` skill** (`~/.claude/skills/dream/SKILL.md`).
+> The dream skill orchestrates the weekly run: it sets up the review worktree,
+> consolidates the memory store (dedup / archive / contradictions / insights /
+> trim MEMORY.md / regenerate Topic-Index), and writes this rollup — all on a
+> `dream/<YYYY-Wxx>` branch for review. This file defines the **rollup document
+> format and the context-gap aggregation** the skill follows. The dream is run
+> on-demand (`/dream`) or by the Sunday launchd job (`weekly-rollup.prompt.md`,
+> which passes `--notify`).
 
 ## Configuration
 
-Read `config.yaml` from the work-automation repo to resolve all `{{variables}}` used in this prompt. Required config keys:
-- `vault_path` — absolute path to Obsidian work vault
-- `work_automation_repo` — path to your work-automation repo
+Resolve `{{vault_path}}` etc. from the host repo's `config.yaml` (`work-automation`
+for work, `life-automations` for personal). All paths below are under `{{vault_path}}`.
 
-Check for task-override files matching `rollup-*` in `{{work_automation_repo}}/task-overrides/` and append their instructions after this prompt's steps.
+## The rollup document
 
-## Context
+Write `Journal/YYYY-WXX-rollup.md` following `DataContext/Weekly-Rollup-Template.md`.
+It is an **append** (a new file) — the rollup never rewrites prior journals or meetings.
+Use `[[wiki links]]` per `DataContext/vault-contract.md`. Be concrete (Hex IDs, file
+names, full names, dollar figures). Synthesize from: this week's daily journals
+(ground truth), the week's meetings, the week's Claude Code session transcripts
+(`~/.claude/projects/*.jsonl`), and the previous rollup (continuity).
 
-This is an automated task running without user interaction. Execute autonomously — make reasonable choices and note them in your output. Only take "write" actions this task explicitly asks for.
+## Context-gap aggregation (the unique value here)
 
-This task synthesizes the week's daily journal entries into a weekly rollup, updates topic nodes in Topics/, and regenerates DataContext/Topic-Index.md for fast onboarding of new Claude instances.
+### Open Questions for the user
+Scan the week's daily journals for `## Open Questions for {{user}}` sections, plus a
+fresh scan for recurring gaps the daily task didn't flag:
+- People who attended ≥2 meetings this week with no `People/` file (or only a stub)
+- Workstreams referenced ≥3 times across journals with no `Topics/` node
+- DataContext/Analysis files referenced repeatedly but last modified >30 days ago
+- Any term/project/system mentioned without grounding in any vault file
 
-## IMPORTANT: Read the Template First
+Append `## Open Questions for {{user}} (Week of YYYY-MM-DD)`. Make each answerable in
+one back-and-forth; be specific. Cap at the 10 most impactful (recurring 3+ > new
+people you met > stale references). Omit the section if there are none — don't pad.
 
-Before doing anything else, read the full rollup template and vault contract:
+### Questions Resolved This Week
+Scan `DataContext/kickoff-resolutions.md` for this week's entries with `→ Written to`
+annotations (answers persisted via the kickoff Learning Loop). Append a
+`## Questions Resolved This Week` section listing them with their vault destination.
+Omit if none.
 
-```bash
-cat {{vault_path}}/DataContext/Weekly-Rollup-Template.md
-cat {{vault_path}}/DataContext/vault-contract.md
-```
-
-The template has detailed instructions for data sources, output format, theme identification heuristics, and rules. The vault contract defines folder structure, file naming, and wiki link conventions. Follow both.
-
-## Steps
-
-### Step 1: Gather Data
-
-Read all data sources listed in the template: this week's journal entries, session transcripts, meetings, Slack activity, TODO.md, last week's rollup, modified files. Be thorough — this task runs when token budget is least constrained.
-
-Data sources include:
-- Journal entries from this week in `{{vault_path}}/Journal/`
-- Meeting files from this week in `{{vault_path}}/Meetings/`
-- Claude Code session logs in `~/.claude/projects/` (current primary source)
-- Cowork session logs in `~/Library/Application Support/Claude/local-agent-mode-sessions` (legacy source — include if present)
-- TODO.md for tracking open items
-- Last week's rollup for continuity
-
-### Step 2: Write the Weekly Rollup
-
-Write to `{{vault_path}}/Journal/YYYY-WXX-rollup.md` following the template format. Use `[[wiki links]]` for people, topics, and meetings per the vault contract.
-
-### Step 3: Update Topic Nodes
-
-After writing the rollup, scan `{{vault_path}}/Topics/` and update or create topic nodes for major workstreams identified in the rollup. Follow the format of existing topic nodes. Keep each at ~1-2KB. See the template's "Topic Node Updates" section for when to create vs update.
-
-### Step 4: Regenerate Topic Index
-
-Regenerate `{{vault_path}}/DataContext/Topic-Index.md` by scanning Topics/, DataContext/, and People/ as described in the template's "Topic Index Regeneration" section. This is the fast-path lookup table interactive sessions use during the day — keeping it current saves significant tokens across all daytime sessions.
+### Staleness escalation
+For Open Questions appearing in 3+ consecutive daily journals unresolved, annotate with
+an age warning (`first surfaced YYYY-MM-DD, appeared N times`). Cap at 3 — oldest/most
+repeated first. Surfaces systemic blockers daily flagging hasn't cleared.
 
 ## Rules
 
-- WORK CONTENT ONLY — no personal topics
-- Be concrete: Hex IDs, file names, full names, dollar figures
-- Use Obsidian `[[wiki links]]` for cross-references (see vault contract for conventions)
-- Self-contained: a new Claude reading the rollup + Onboarding.md should be immediately useful
-- Journal is ground truth, TODO.md is aspirational
-- Never fabricate — only report what's verifiable from sources
+- WORK CONTENT ONLY (work context) — no personal topics; never cross-write vaults.
+- Journal is ground truth; never fabricate — report only what's verifiable from sources.
+- Self-contained: a new Claude reading the rollup + `Onboarding.md` should be useful immediately.
