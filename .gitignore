@@ -1,0 +1,9 @@
+.DS_Store
+*.log
+.venv/
+__pycache__/
+*.pyc
+
+# A filled-in config at the repo root is real user data; the templates
+# (config.example.yaml, sharing/config.yaml) are placeholders and DO ship.
+/config.yaml

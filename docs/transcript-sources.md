@@ -22,15 +22,6 @@ Granola captures meetings across platforms and generates AI summaries. It serves
 - **Pros**: Works across Zoom, Meet, Teams; always generates a summary even if transcript is unavailable
 - **Cons**: AI-summarized (not verbatim); may miss nuance or specific quotes
 
-## Local Transcription (Future)
-
-A planned pipeline for capturing and transcribing audio locally using Whisper, independent of any cloud service.
-
-- **Status**: Under development (see MeetingScribe project)
-- **Approach**: Per-window audio capture with local Whisper transcription
-- **Pros**: Works offline, no third-party dependency, captures any audio source
-- **Cons**: Requires local compute; not yet integrated into the nightly journal pipeline
-
 ## Source Prioritization
 
 The nightly journal agent follows this priority order when gathering meeting content:
