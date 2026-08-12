@@ -90,6 +90,20 @@ replacement = '{{work_vault}}'
 pattern     = '~/obsidian-vaults/Personal'
 replacement = '{{personal_vault}}'
 
+# The SessionStart hook writes these as "$HOME/obsidian-vaults/Work/", which the
+# tilde rules above do not match. Without these two, a rebuild that puts the
+# vaults anywhere else gets a hook that announces the wrong destination — and
+# the hook is what enforces the no-cross-write rule, so it must agree with the
+# configured vault paths. Worth checking for any other $HOME/... form your own
+# hooks use.
+[[substitutions]]
+pattern     = '\$HOME/obsidian-vaults/Work'
+replacement = '{{work_vault}}'
+
+[[substitutions]]
+pattern     = '\$HOME/obsidian-vaults/Personal'
+replacement = '{{personal_vault}}'
+
 # Identity. Emails BEFORE bare account names, or a bare-username rule eats the
 # local part of an address and leaves a dangling "@company.com".
 [[substitutions]]

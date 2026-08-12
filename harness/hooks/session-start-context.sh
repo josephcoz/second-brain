@@ -7,11 +7,11 @@
 context="${CLAUDE_CONTEXT:-unset}"
 case "$context" in
   work)
-    vault="$HOME/obsidian-vaults/Work/"
+    vault="{{work_vault}}/"
     label="WORK"
     ;;
   personal)
-    vault="$HOME/obsidian-vaults/Personal/"
+    vault="{{personal_vault}}/"
     label="PERSONAL"
     ;;
   *)
