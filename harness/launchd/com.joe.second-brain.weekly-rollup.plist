@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>CLAUDE_CONTEXT</key>
+		<string>work</string>
+		<key>HOME</key>
+		<string>{{home}}</string>
+		<key>PATH</key>
+		<string>{{home}}/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+	<key>Label</key>
+	<string>com.{{user_slug}}.second-brain.weekly-rollup</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>-c</string>
+		<string>{{home}}/.local/bin/claude -p --settings {{home}}/.claude/work-settings.json --add-dir {{work_automation_repo}} --add-dir {{second_brain_repo}} --add-dir {{work_analyses_repo}} --add-dir {{home}}/obsidian-vaults &lt; scripts/tasks/weekly-rollup.prompt.md</string>
+	</array>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StandardErrorPath</key>
+	<string>{{work_automation_repo}}/logs/weekly-rollup.log</string>
+	<key>StandardOutPath</key>
+	<string>{{work_automation_repo}}/logs/weekly-rollup.log</string>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>21</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+		<key>Weekday</key>
+		<integer>0</integer>
+	</dict>
+	<key>WorkingDirectory</key>
+	<string>{{work_automation_repo}}</string>
+</dict>
+</plist>

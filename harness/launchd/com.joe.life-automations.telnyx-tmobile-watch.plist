@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.{{user_slug}}.life-automations.telnyx-tmobile-watch</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>{{personal_automation_repo}}/scripts/telnyx_tmobile_watch.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>{{personal_automation_repo}}</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>{{home}}</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>CLAUDE_CONTEXT</key>
+        <string>personal</string>
+    </dict>
+    <key>StartInterval</key>
+    <integer>14400</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>{{personal_automation_repo}}/logs/telnyx-tmobile-watch.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{personal_automation_repo}}/logs/telnyx-tmobile-watch.log</string>
+</dict>
+</plist>
