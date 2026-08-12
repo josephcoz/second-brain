@@ -7,3 +7,9 @@ __pycache__/
 # A filled-in config at the repo root is real user data; the templates
 # (config.example.yaml, sharing/config.yaml) are placeholders and DO ship.
 /config.yaml
+
+# Real values for the harness placeholders, and the expanded tree they
+# produce. Both name a real employer and real paths. Only the .example
+# template ships.
+/scripts/harness-values.toml
+/harness-filled/

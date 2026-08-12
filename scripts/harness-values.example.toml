@@ -1,0 +1,71 @@
+# Values for filling in harness/ on a new machine.
+#
+#   cp scripts/harness-values.example.toml scripts/harness-values.toml
+#   $EDITOR scripts/harness-values.toml
+#   python3 scripts/fill-harness.py
+#
+# harness-values.toml is gitignored — it names a real employer and real paths.
+#
+# Every placeholder present in harness/ must have a value here. fill-harness.py
+# refuses to run if any are missing, and reports leftovers if any survive, so a
+# half-filled config fails loudly rather than producing a broken ~/.claude.
+
+# --- identity -------------------------------------------------------------
+
+# Display name, as it should read in prose: "{{user}}'s preferred format..."
+user = "Jane"
+
+# Lowercase token for launchd labels: com.<user_slug>.second-brain.nightly-journal
+user_slug = "jane"
+
+# macOS account name — `whoami`. Used in the sudoers rule documented in
+# hooks/nosleep.sh.
+unix_user = "jane.doe"
+
+# The same account name with dots and slashes replaced by dashes. Claude Code
+# mangles a project's absolute path into a flat directory name this way, so
+# ~/.claude/projects/-Users-jane-doe/ is where transcripts land. Check the
+# actual directory name under ~/.claude/projects/ rather than guessing.
+unix_user_dashed = "jane-doe"
+
+# Absolute home directory — `echo $HOME`. Must be absolute: launchd does not
+# expand "~", so the plists need the real path.
+home = "/Users/jane.doe"
+
+# --- employer -------------------------------------------------------------
+
+company = "Acme"
+team    = "RevOps"
+
+# --- github ---------------------------------------------------------------
+
+gh_work_account     = "jane-at-acme"
+gh_personal_account = "janedoe"
+
+# --- vaults ---------------------------------------------------------------
+# Absolute paths. These are the two Obsidian vaults; content never crosses
+# between them.
+
+work_vault     = "/Users/jane.doe/obsidian-vaults/Work"
+personal_vault = "/Users/jane.doe/obsidian-vaults/Personal"
+
+# --- repos ----------------------------------------------------------------
+# Absolute paths to the repos the claude() shell function passes via --add-dir.
+
+# Host repo for work scheduled tasks, scripts, and config.yaml. Create it at a
+# new employer if it does not exist yet — see SETUP.md.
+work_automation_repo = "/Users/jane.doe/github-projects/work-automation"
+
+# Where ad-hoc work analyses live. Point at work_automation_repo if you do not
+# keep a separate one.
+work_analyses_repo = "/Users/jane.doe/github-projects/analyses"
+
+# This repo, once cloned.
+second_brain_repo = "/Users/jane.doe/github-projects/second-brain"
+
+# Personal counterpart to work_automation_repo.
+personal_automation_repo = "/Users/jane.doe/personal-projects/life-automations"
+
+# Meeting transcription tool. If you do not use it, drop the matching
+# --add-dir line from zshrc-claude-function.sh after filling.
+meetingscribe_repo = "/Users/jane.doe/personal-projects/meetingscribe"
