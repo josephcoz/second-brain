@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import sys
@@ -39,7 +40,38 @@ import tomllib
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-RULES_PATH = Path(__file__).resolve().parent / "harness-scrub.toml"
+SCRIPTS_DIR = Path(__file__).resolve().parent
+EXAMPLE_RULES = SCRIPTS_DIR / "harness-scrub.example.toml"
+
+
+def _resolve_rules_path() -> Path:
+    """Locate the scrub ruleset.
+
+    The filled-in ruleset is deliberately NOT in this repo: it has to name, in
+    plaintext, every string it removes — work email, employer, internal tooling
+    — which would make it an index of exactly what you were trying not to
+    publish. It is gitignored here and kept somewhere private; point at it with
+    a symlink or $SECOND_BRAIN_SCRUB_RULES.
+    """
+    env = os.environ.get("SECOND_BRAIN_SCRUB_RULES")
+    if env:
+        path = Path(env).expanduser()
+        if not path.exists():
+            sys.exit(f"SECOND_BRAIN_SCRUB_RULES points at {path}, which does not exist.")
+        return path
+
+    local = SCRIPTS_DIR / "harness-scrub.toml"
+    if local.exists():
+        return local
+
+    sys.exit(
+        "No scrub ruleset found.\n\n"
+        f"  cp {EXAMPLE_RULES.relative_to(REPO_ROOT)} "
+        f"{local.relative_to(REPO_ROOT)}\n"
+        f"  $EDITOR {local.relative_to(REPO_ROOT)}\n\n"
+        "It is gitignored — keep the real one private (e.g. beside your private\n"
+        "harness backup) and symlink it here, or set $SECOND_BRAIN_SCRUB_RULES.\n"
+    )
 
 # Sentinel wrapper for protected strings. Chosen to be something that cannot
 # occur in the source files and that no substitution pattern can match.
@@ -51,7 +83,7 @@ class ScrubError(Exception):
 
 
 def load_rules() -> dict:
-    with RULES_PATH.open("rb") as fh:
+    with _resolve_rules_path().open("rb") as fh:
         rules = tomllib.load(fh)
 
     # A bare `protect = [...]` written below the [meta] header is parsed as

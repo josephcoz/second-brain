@@ -13,3 +13,8 @@ __pycache__/
 # template ships.
 /scripts/harness-values.toml
 /harness-filled/
+
+# The real scrub ruleset necessarily spells out every string it removes —
+# work email, internal tooling names, account handles. It lives in the private
+# vault repo (Personal/harness-private/). Only the .example version ships.
+/scripts/harness-scrub.toml

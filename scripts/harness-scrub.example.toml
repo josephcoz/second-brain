@@ -1,0 +1,286 @@
+# Example ruleset for sanitize-harness.py.
+#
+#   cp scripts/harness-scrub.example.toml scripts/harness-scrub.toml
+#   $EDITOR scripts/harness-scrub.toml
+#   python3 scripts/sanitize-harness.py
+#
+# WHY THIS FILE IS AN EXAMPLE
+#
+# A scrub ruleset has to name, in plaintext, every string it removes: your work
+# email, your employer, internal repo and tooling names, your account handles.
+# That makes the real ruleset a tidy index of exactly what you were trying not
+# to publish. So the filled-in copy is gitignored and belongs somewhere private
+# (alongside your private harness backup); only this template ships.
+#
+# The values below are placeholders matching harness-values.example.toml —
+# "Acme", "jane.doe", "janedoe". Replace them with your own.
+#
+# HOW IT WORKS — three layers, applied in order:
+#
+#   1. protect    literal strings that must survive substitution untouched,
+#                 for generic English that collides with a real name
+#   2. substitute ordered regex replacements, most specific first
+#   3. forbidden  patterns that must NOT appear in the output; any hit is a
+#                 hard failure. This is the backstop that catches secrets added
+#                 to ~/.claude after these rules were written.
+#
+# Layer 3 is the one that earns its keep. When this was first run for real it
+# caught a bare Unix username buried in a sudoers comment, and Claude Code's
+# dash-mangled project paths (/Users/x -> -Users-x), neither of which the path
+# rules covered.
+
+# ---------------------------------------------------------------------------
+# 1. PROTECT
+# ---------------------------------------------------------------------------
+# Some words are both a proper noun you must remove and an ordinary word you
+# must keep. "Workstream" is a real company AND the standard term for a project
+# area — this framework uses the generic sense constantly. List the exact
+# generic phrases here so substitution skips them.
+#
+# NOTE: this MUST stay above the first [table] header. A bare key written after
+# `[meta]` would silently become meta.protect and never be read.
+protect = [
+  "- Workstream / project",
+]
+
+[meta]
+source_root = "~/.claude"
+output_dir  = "harness"
+
+# ---------------------------------------------------------------------------
+# 2. SUBSTITUTE — order matters, most specific first.
+# ---------------------------------------------------------------------------
+
+# Absolute home path first, so every later path rule can assume "~".
+[[substitutions]]
+pattern     = '/Users/jane\.doe'
+replacement = '~'
+
+# Claude Code flattens a project's absolute path into a directory name by
+# replacing slashes and dots with dashes:
+#   /Users/jane.doe  ->  -Users-jane-doe
+# so the rule above never sees it. Appears in ~/.claude/projects/ paths.
+[[substitutions]]
+pattern     = '-Users-jane-doe'
+replacement = '-Users-{{unix_user_dashed}}'
+
+# Repo paths.
+[[substitutions]]
+pattern     = '~/github-projects/work-automation'
+replacement = '{{work_automation_repo}}'
+
+[[substitutions]]
+pattern     = '~/github-projects/analyses'
+replacement = '{{work_analyses_repo}}'
+
+[[substitutions]]
+pattern     = '~/github-projects/second-brain'
+replacement = '{{second_brain_repo}}'
+
+[[substitutions]]
+pattern     = '~/personal-projects/life-automations'
+replacement = '{{personal_automation_repo}}'
+
+# Vault paths.
+[[substitutions]]
+pattern     = '~/obsidian-vaults/Work'
+replacement = '{{work_vault}}'
+
+[[substitutions]]
+pattern     = '~/obsidian-vaults/Personal'
+replacement = '{{personal_vault}}'
+
+# Identity. Emails BEFORE bare account names, or a bare-username rule eats the
+# local part of an address and leaves a dangling "@company.com".
+[[substitutions]]
+pattern     = 'jane\.doe@acme\.com'
+replacement = '{{work_email}}'
+
+[[substitutions]]
+pattern     = 'janedoe@gmail\.com'
+replacement = '{{personal_email}}'
+
+[[substitutions]]
+pattern     = 'jane-at-acme'
+replacement = '{{gh_work_account}}'
+
+[[substitutions]]
+pattern     = 'janedoe'
+replacement = '{{gh_personal_account}}'
+
+# The bare macOS account name, e.g. as it appears in a sudoers rule. Must run
+# AFTER the email rules above.
+[[substitutions]]
+pattern     = 'jane\.doe'
+replacement = '{{unix_user}}'
+
+# Employer. Company + team before bare company.
+[[substitutions]]
+pattern     = 'Acme RevOps'
+replacement = '{{company}} {{team}}'
+
+[[substitutions]]
+pattern     = 'Acme'
+replacement = '{{company}}'
+
+# launchd label prefix, e.g. com.jane.second-brain.nightly-journal
+[[substitutions]]
+pattern     = 'com\.jane\.'
+replacement = 'com.{{user_slug}}.'
+
+# First name last — it is the shortest token and would otherwise match inside
+# the longer identifiers handled above.
+[[substitutions]]
+pattern     = '\bJane\b'
+replacement = '{{user}}'
+
+# ---------------------------------------------------------------------------
+# 3. FORBIDDEN — any match in the OUTPUT fails the run.
+# ---------------------------------------------------------------------------
+
+[[forbidden]]
+pattern = 'Acme'
+label   = "employer name survived substitution"
+
+[[forbidden]]
+pattern = 'acme\.com'
+label   = "work email domain"
+
+[[forbidden]]
+pattern = 'doe'
+label   = "surname in a path or handle"
+
+[[forbidden]]
+pattern = '/Users/[a-z]'
+label   = "absolute macOS home path (should be ~)"
+
+# Google Drive / Docs file IDs and similar opaque tokens. Requires a digit AND
+# an uppercase letter so ordinary long kebab-case names — e.g.
+# "update-scrubbed-second-brain", which is exactly 28 chars — do not match.
+# This is the rule that caught a live Drive file ID embedded in a skill.
+[[forbidden]]
+pattern = '\b(?=[A-Za-z0-9_-]*[0-9])(?=[A-Za-z0-9_-]*[A-Z])[A-Za-z0-9_-]{25,}\b'
+label   = "opaque ID (Drive file, API key, token)"
+
+# Uppercase only: warehouse identifiers are SHOUTED by convention, and a
+# case-insensitive version would match ordinary prose like "raw_data_here".
+[[forbidden]]
+pattern = '\b(FOUNDATIONAL|STG|RAW|DIM|FCT)_[A-Z][A-Z0-9_]{3,}\b'
+label   = "warehouse table identifier"
+
+[[forbidden]]
+pattern = '''(?i)(api[_-]?key|secret|password|bearer)\s*[:=]\s*['"][A-Za-z0-9_-]{12,}'''
+label   = "hardcoded credential"
+
+[[forbidden]]
+pattern = 'xoxb-|ghp_|gho_|sk-[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}'
+label   = "vendor credential prefix"
+
+# ---------------------------------------------------------------------------
+# FILES — the whitelist. Nothing outside this list is ever read.
+# ---------------------------------------------------------------------------
+# ~/.claude also holds session transcripts, telemetry, and caches full of work
+# conversation content. Name what goes in; never copy-everything-and-exclude.
+#
+# modes:
+#   template          substitute and copy
+#   json_permissions  drop work-specific permission entries, then substitute
+#   stub              do not copy the source; write `stub_text` instead
+#   zshrc_function    extract the claude() function from ~/.zshrc
+
+[[files]]
+src  = "CLAUDE.md"
+dst  = "CLAUDE.md"
+mode = "template"
+
+# The portable value in settings.json is the hooks / statusLine / effortLevel
+# config. Its allow-list is paths into work repos and internal query tooling,
+# which names internal systems even after path templating — so it is filtered,
+# not templated.
+[[files]]
+src  = "settings.json"
+dst  = "settings.json"
+mode = "json_permissions"
+drop_patterns = [
+  "work-automation",
+  "internal-tool-name",
+  "your-warehouse",
+]
+
+[[files]]
+src  = "settings.local.json"
+dst  = "settings.local.json"
+mode = "json_permissions"
+drop_patterns = [
+  "work-automation",
+  "internal-tool-name",
+  "your-warehouse",
+]
+
+[[files]]
+src  = "personal-settings.json"
+dst  = "personal-settings.json"
+mode = "template"
+
+[[files]]
+src  = "work-settings.json"
+dst  = "work-settings.json"
+mode = "template"
+
+[[files]]
+src  = "hooks/session-start-context.sh"
+dst  = "hooks/session-start-context.sh"
+mode = "template"
+
+[[files]]
+src  = "statusline-command.sh"
+dst  = "statusline-command.sh"
+mode = "template"
+
+[[files]]
+src  = "skills/document/SKILL.md"
+dst  = "skills/document/SKILL.md"
+mode = "template"
+
+[[files]]
+src  = "skills/dream/SKILL.md"
+dst  = "skills/dream/SKILL.md"
+mode = "template"
+
+# Example of a skill that CANNOT be templated. Anything embedding brand assets
+# — a Drive file ID for a branded deck template, an employer's hex palette —
+# survives name-substitution intact. Ship the approach, not the assets.
+[[files]]
+src  = "skills/google-slides/SKILL.md"
+dst  = "skills/google-slides/README.md"
+mode = "stub"
+stub_text = """
+# google-slides (not published)
+
+The live version of this skill builds decks against a specific employer's
+branded template and is not included here: it embeds a Drive file ID and the
+brand's hex palette, neither of which a name-substitution can remove.
+
+The approach generalizes: cache the org's .pptx template in your work repo,
+build on its own layouts with python-pptx so theme colors and fonts come
+through for free, keep brand constants in one module, and upload with
+mimeType application/vnd.google-apps.presentation so it converts to native
+Slides.
+"""
+
+[[files]]
+src  = "~/.zshrc"
+dst  = "zshrc-claude-function.sh"
+mode = "zshrc_function"
+
+# launchd does not expand "~". The global rules rewrite the home path to a
+# tilde, which is right for shell and prose but produces a plist that looks
+# valid and silently fails to load. Convert it back to an explicit placeholder
+# so the user must supply an absolute path.
+[[files]]
+src_glob = "~/Library/LaunchAgents/com.jane.*.plist"
+dst_dir  = "launchd"
+mode     = "template"
+post_substitutions = [
+  ['~', '{{home}}'],
+]
