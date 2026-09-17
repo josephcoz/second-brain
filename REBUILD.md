@@ -23,6 +23,17 @@ and then cannot reconstruct.
 A rebuild that stops after the first two gives you a folder of markdown and no
 second brain.
 
+**Just want your own setup back, no employer changes?** Skip the templating.
+Clone the vault and run the verbatim restore, which rewrites the old home path
+to the new one:
+
+```bash
+git clone https://github.com/josephcoz/obsidian-vault-personal.git ~/obsidian-vaults/Personal
+~/obsidian-vaults/Personal/harness-private/restore-harness.sh
+```
+
+The rest of this file is the templated path, for a new employer.
+
 ---
 
 ## 0. Prerequisites
