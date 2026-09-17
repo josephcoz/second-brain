@@ -56,6 +56,10 @@ Scheduled Claude Code tasks read your `config.yaml`, pull data from MCP connecto
 
 6. Verify tasks are running with `claude schedule list`.
 
+## Rebuilding on a new machine
+
+See [REBUILD.md](REBUILD.md).
+
 ## Documentation
 
 See the `docs/` directory for detailed guides on each task, vault structure conventions, and how to add custom skills or overrides.
