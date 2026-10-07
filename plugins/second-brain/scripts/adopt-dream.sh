@@ -1,7 +1,8 @@
 #!/bin/bash
 # adopt-dream.sh — adopt (merge) or discard a dream branch.
 #
-# A dream runs on an isolated branch + worktree; the live vault stays on `main`.
+# A dream runs on an isolated branch + worktree (under SECOND_BRAIN_DREAM_DIR);
+# the live vault stays on `main`.
 # This script is the explicit adoption gate.
 #
 # Usage:
@@ -17,7 +18,8 @@ WEEK="${1:?usage: adopt-dream.sh <YYYY-Wxx> [--discard]}"
 MODE="${2:-adopt}"
 VAULT="${SECOND_BRAIN_VAULT:?no vault configured; run /second-brain:setup}"
 BRANCH="dream/${WEEK}"
-WORKTREE="$(dirname "$VAULT")/$(basename "$VAULT")-dream-${WEEK}"
+VAULT="${VAULT%/}"
+DREAM_DIR="${SECOND_BRAIN_DREAM_DIR:-$HOME/.claude/second-brain/dream-worktrees}"
 
 cd "$VAULT"
 
@@ -25,6 +27,14 @@ if ! git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
   echo "No branch '$BRANCH' in $VAULT — nothing to do." >&2
   exit 1
 fi
+
+# Ask git where the branch is checked out, whatever the folder was named.
+# Fall back to the usual locations: the dream folder, then (plugin 0.2.0 and
+# earlier) a sibling of the vault.
+WORKTREE="$(git worktree list --porcelain | awk -v b="branch refs/heads/$BRANCH" '
+  /^worktree /{w=substr($0, 10)} $0==b && !found {print w; found=1}')"
+[ -n "$WORKTREE" ] || WORKTREE="${DREAM_DIR%/}/$(basename "$VAULT")-${WEEK}"
+[ -d "$WORKTREE" ] || WORKTREE="$(dirname "$VAULT")/$(basename "$VAULT")-dream-${WEEK}"
 
 # Remove the worktree first (a branch checked out in a worktree can't be merged/deleted cleanly).
 git worktree remove --force "$WORKTREE" 2>/dev/null || true
